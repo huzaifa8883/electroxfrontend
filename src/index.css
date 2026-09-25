@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------------------------------------------------------------
+   Fix: native <select> dropdown popups render with a WHITE
+   background + white/system text on most browsers/OSes because
+   Tailwind classes only style the closed control, never the
+   OS-drawn option list. `color-scheme: dark` tells the browser to
+   paint its native UI (dropdown popup, scrollbars, etc.) using the
+   dark palette, and the explicit `option` colors below back that
+   up on browsers that still render options with a light popup.
+   This fixes every <select> in the app (Sales, Products, Users…)
+   from one place. ------------------------------------------------ */
+:root { color-scheme: dark; }
+select { color-scheme: dark; }
+select option,
+select optgroup {
+  background-color: #0f172a; /* slate-900 */
+  color: #f1f5f9;            /* slate-100 */
+}
+
+/* Slim, unobtrusive scrollbars to match the dark theme */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
+
+/* Kill the browser's yellow/white autofill background on inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f1f5f9;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(15, 23, 42, 0.9) inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+@layer components {
+  /* Shared glass card used across dashboard/list/detail panels */
+  .glass-card {
+    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+      bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-semibold
+      shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover:brightness-110
+      active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+      bg-white/5 border border-white/10 text-slate-200 text-sm font-semibold
+      hover:bg-white/10 hover:border-white/20 active:scale-[0.98] transition-all;
+  }
+  .input-field {
+    @apply w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm
+      placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500/40
+      transition-colors;
+  }
+}
+
+.animate-fade-in { animation: fadeIn 0.25s ease-out; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .print\:bg-white, .print\:bg-white * { visibility: visible; }
+  .print\:bg-white { position: fixed; inset: 0; margin: 0; }
+}
