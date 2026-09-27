@@ -162,12 +162,18 @@ export function Reports() {
   const [days, setDays] = useState(14);
 
   useEffect(() => {
-    api.getRevenueGraph(days).then((r) => setGraph(r.data)).catch(() => setGraph([]));
+    api.getRevenueGraph(days)
+      .then((r) => setGraph(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setGraph([]));
   }, [days]);
 
   useEffect(() => {
-    api.getStats().then((r) => setStats(r.data)).catch(() => setStats(null));
-    api.getTopSellers(5).then((r) => setTopSellers(r.data)).catch(() => setTopSellers([]));
+    api.getStats()
+      .then((r) => setStats(r.data && typeof r.data === "object" ? r.data : null))
+      .catch(() => setStats(null));
+    api.getTopSellers(5)
+      .then((r) => setTopSellers(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setTopSellers([]));
   }, []);
 
   const max = Math.max(...graph.map((g) => Number(g.revenue)), 1);
