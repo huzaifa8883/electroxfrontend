@@ -198,19 +198,21 @@ export default function Products() {
           {filtered.map((p) => {
             const status = stockStatus(p);
             const margin = marginPercent(p);
-            const fillPct = Math.min(100, Math.round((p.stock / Math.max(p.min_stock * 3, 1)) * 100));
+            const stock = Number(p.stock) || 0;
+            const minStock = Number(p.min_stock) || 0;
+            const fillPct = Math.min(100, Math.round((stock / Math.max(minStock * 3, 1)) * 100));
+            const dotColor = stock <= 0 ? "bg-rose-400" : stock <= minStock ? "bg-amber-400" : "bg-emerald-400";
             return (
-              <div key={p.id} className="group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden hover:border-cyan-500/30 transition-colors">
+              <div key={p.id} className="group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/5 transition-all">
                 <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
                   {p.image_url ? (
                     <img src={api.resolveImageUrl(p.image_url)} alt={p.name} className="w-full h-full object-cover" />
                   ) : (
                     <Package size={40} className="text-slate-600" />
                   )}
-                  <div className="absolute top-2 left-2 flex gap-1">
+                  <div className="absolute top-2 left-2">
                     <span className={`text-[10px] font-semibold px-2 py-1 rounded-md border backdrop-blur-md ${status.color}`}>{status.label}</span>
                   </div>
-                  <span className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-1 rounded-md bg-black/50 text-slate-200">{p.stock} pcs</span>
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button onClick={() => openEdit(p)} className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20"><Pencil size={14} /></button>
                     <button onClick={() => remove(p.id)} className="p-2 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-500/30"><Trash2 size={14} /></button>
@@ -218,18 +220,31 @@ export default function Products() {
                 </div>
                 <div className="p-4">
                   {p.category && <p className="text-[11px] text-cyan-400 font-medium mb-1">{p.category}</p>}
-                  <p className="text-white font-semibold text-sm truncate">{p.name}</p>
+                  <p className="text-white font-semibold text-sm truncate" title={p.name}>{p.name}</p>
                   <p className="text-xs text-slate-500 mb-3">{p.sku}</p>
+
+                  {/* Stock row - always visible, no longer hidden behind hover overlay */}
+                  <div className="flex items-center justify-between mb-3 px-2.5 py-1.5 rounded-lg bg-black/20 border border-white/5">
+                    <span className="flex items-center gap-1.5 text-xs text-slate-300">
+                      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                      {status.label}
+                    </span>
+                    <span className="text-sm font-bold text-white">
+                      {stock} <span className="text-[11px] font-normal text-slate-400">pcs</span>
+                    </span>
+                  </div>
+
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-lg font-bold text-cyan-300">Rs. {Number(p.selling_price || 0).toLocaleString()}</span>
                     <span className="text-xs text-emerald-400">{margin}% margin</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <div
-                      className={`h-full rounded-full ${p.stock <= p.min_stock ? "bg-amber-400" : "bg-emerald-400"}`}
+                      className={`h-full rounded-full ${dotColor}`}
                       style={{ width: `${fillPct}%` }}
                     />
                   </div>
+                  <p className="text-[10px] text-slate-500 mt-1">Min stock: {minStock} pcs</p>
                 </div>
               </div>
             );
