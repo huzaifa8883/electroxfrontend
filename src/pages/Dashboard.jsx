@@ -9,9 +9,15 @@ export default function Dashboard() {
   const [topSellers, setTopSellers] = useState([]);
 
   useEffect(() => {
-    api.getStats().then((r) => setStats(r.data)).catch(console.error);
-    api.getLowStock().then((r) => setLowStock(r.data)).catch(console.error);
-    api.getTopSellers(5).then((r) => setTopSellers(r.data)).catch(console.error);
+    api.getStats()
+      .then((r) => setStats(r.data && typeof r.data === "object" ? r.data : null))
+      .catch(console.error);
+    api.getLowStock()
+      .then((r) => setLowStock(Array.isArray(r.data) ? r.data : []))
+      .catch(console.error);
+    api.getTopSellers(5)
+      .then((r) => setTopSellers(Array.isArray(r.data) ? r.data : []))
+      .catch(console.error);
   }, []);
 
   return (
