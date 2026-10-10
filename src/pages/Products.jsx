@@ -66,9 +66,8 @@ export const CATEGORIES = [
 
 const emptyForm = {
   sku: "", name: "", category: CATEGORIES[0], stock: 0, min_stock: 5,
-  cost_price: 0, selling_price: 0, box_id: "", image_url: "", images: [],
-  location: "", description: "", characteristics: "",
-  short_description: "", meta_description: "", tags: "", focus_keyword: "",
+  cost_price: 0, regular_price: 0, selling_price: 0, box_id: "", image_url: "", images: [],
+  description: "", meta_description: "", tags: "", focus_keyword: "",
   weight: 0, sync_to_website: true,
 };
 
@@ -173,14 +172,12 @@ export default function Products() {
       stock: p.stock,
       min_stock: p.min_stock,
       cost_price: p.cost_price,
+      regular_price: p.regular_price || p.selling_price || 0,
       selling_price: p.selling_price,
       box_id: p.box_id || "",
       image_url: p.image_url || imgs[0] || "",
       images: imgs,
-      location: p.location || "",
       description: p.description || "",
-      characteristics: p.characteristics || "",
-      short_description: p.short_description || "",
       meta_description: p.meta_description || "",
       tags: p.tags || "",
       focus_keyword: p.focus_keyword || "",
@@ -248,6 +245,7 @@ export default function Products() {
         stock: Number(form.stock) || 0,
         min_stock: Number(form.min_stock) || 0,
         cost_price: Number(form.cost_price) || 0,
+        regular_price: Number(form.regular_price) || 0,
         selling_price: Number(form.selling_price) || 0,
         weight: Number(form.weight) || 0,
         images: form.images,
@@ -603,10 +601,54 @@ export default function Products() {
                       </div>
                     </div>
 
-                    {(detail.location || detail.box_number) && (
-                      <div className="flex items-start gap-2 text-sm text-slate-400">
-                        <MapPin size={14} className="mt-0.5 shrink-0 text-slate-500" />
-                        <span>{[detail.box_number, detail.location].filter(Boolean).join(" · ")}</span>
+                    {/* Pricing row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Regular Price</p>
+                        <p className="text-lg font-bold text-white">
+                          Rs. {Number(detail.regular_price || detail.selling_price || 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Sale Price</p>
+                        <p className="text-lg font-bold text-cyan-300">
+                          {Number(detail.selling_price) > 0 && Number(detail.regular_price) > Number(detail.selling_price)
+                            ? `Rs. ${Number(detail.selling_price).toLocaleString()}`
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {detail.focus_keyword && (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Focus Keyword</h3>
+                        <span className="inline-flex px-2.5 py-1 rounded-lg bg-violet-500/15 text-violet-300 text-xs border border-violet-500/20">
+                          {detail.focus_keyword}
+                        </span>
+                      </div>
+                    )}
+
+                    {detail.tags && (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                          <Tag size={12} /> Tags
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {String(detail.tags).split(",").map((t) => t.trim()).filter(Boolean).map((t) => (
+                            <span key={t} className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 text-[11px] border border-cyan-500/20">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {detail.meta_description && (
+                      <div>
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Meta Description</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed bg-white/[0.03] border border-white/5 rounded-xl p-3">
+                          {detail.meta_description}
+                        </p>
                       </div>
                     )}
 
@@ -615,34 +657,27 @@ export default function Products() {
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
                           <FileText size={12} /> Description
                         </h3>
-                        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{detail.description}</p>
-                      </div>
-                    )}
-
-                    {chars.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-                          <List size={12} /> Characteristics
-                        </h3>
-                        <div className="rounded-xl border border-white/10 overflow-hidden">
-                          {chars.map((c, i) => (
-                            <div
-                              key={i}
-                              className={`flex gap-3 px-3.5 py-2.5 text-sm ${i % 2 === 0 ? "bg-white/[0.03]" : "bg-transparent"}`}
-                            >
-                              {c.key ? (
-                                <>
-                                  <span className="text-slate-500 w-32 shrink-0">{c.key}</span>
-                                  <span className="text-slate-200">{c.value}</span>
-                                </>
-                              ) : (
-                                <span className="text-slate-300">{c.value}</span>
-                              )}
-                            </div>
-                          ))}
+                        <div className="text-sm text-slate-300 leading-relaxed space-y-1.5 bg-white/[0.03] border border-white/5 rounded-xl p-4">
+                          {String(detail.description)
+                            .split(/\n+|(?<=\.)\s+(?=[A-Z•\-\d])/)
+                            .map((line) => line.trim())
+                            .filter(Boolean)
+                            .map((line, i) => (
+                              <div key={i} className="flex gap-2">
+                                <span className="text-cyan-400/80 shrink-0 mt-0.5">•</span>
+                                <span>{line.replace(/^[\-•\*]\s*/, "")}</span>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     )}
+
+                    {detail.weight > 0 && (
+                      <div className="text-sm text-slate-400">
+                        Weight: <span className="text-white font-medium">{detail.weight} kg</span>
+                      </div>
+                    )}
+
 
                     {detail.supplier_name && (
                       <p className="text-xs text-slate-500">Supplier: <span className="text-slate-300">{detail.supplier_name}</span></p>
@@ -730,35 +765,20 @@ export default function Products() {
               <Field label="Stock (Quantity)" type="number" value={form.stock} onChange={(v) => setForm({ ...form, stock: v })} />
               <Field label="Min Stock" type="number" value={form.min_stock} onChange={(v) => setForm({ ...form, min_stock: v })} />
               <Field label="Cost Price" type="number" value={form.cost_price} onChange={(v) => setForm({ ...form, cost_price: v })} />
-              <Field label="Selling Price" type="number" value={form.selling_price} onChange={(v) => setForm({ ...form, selling_price: v })} />
-              <div className="sm:col-span-2">
-                <Field label="Location" value={form.location} onChange={(v) => setForm({ ...form, location: v })} placeholder="e.g. Aisle 2, Shelf B" />
-              </div>
+              <Field label="Regular Price" type="number" value={form.regular_price} onChange={(v) => setForm({ ...form, regular_price: v })} />
+              <Field label="Sale Price" type="number" value={form.selling_price} onChange={(v) => setForm({ ...form, selling_price: v })} placeholder="Leave 0 if no sale" />
             </div>
 
             <div>
               <label className="text-xs text-slate-400 flex items-center gap-1.5 mb-1">
-                <FileText size={11} /> Short Description (website)
-              </label>
-              <textarea
-                value={form.short_description}
-                onChange={(e) => setForm({ ...form, short_description: e.target.value })}
-                rows={2}
-                placeholder="Short text shown under product title on website..."
-                className="input-field resize-y min-h-[60px]"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 flex items-center gap-1.5 mb-1">
-                <FileText size={11} /> Description (full)
+                <FileText size={11} /> Description
               </label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={4}
-                placeholder="Full product description (website long description)..."
-                className="input-field resize-y min-h-[100px]"
+                rows={5}
+                placeholder="Product description (goes to website description)..."
+                className="input-field resize-y min-h-[120px]"
               />
             </div>
 
@@ -788,20 +808,6 @@ export default function Products() {
               />
               Sync to website (WooCommerce) on save
             </label>
-
-            <div>
-              <label className="text-xs text-slate-400 flex items-center gap-1.5 mb-1">
-                <Layers size={11} /> Characteristics
-              </label>
-              <textarea
-                value={form.characteristics}
-                onChange={(e) => setForm({ ...form, characteristics: e.target.value })}
-                rows={4}
-                placeholder={"One per line, e.g.\nVoltage: 12V\nCapacity: 100Ah\nWarranty: 1 Year"}
-                className="input-field resize-y min-h-[100px] font-mono text-xs"
-              />
-              <p className="text-[10px] text-slate-500 mt-1">Use Key: Value format (one per line) for a clean detail view.</p>
-            </div>
 
             <button disabled={uploading} className="btn-primary w-full">
               {uploading ? "Uploading…" : editing ? "Save Changes" : "Create Product"}
