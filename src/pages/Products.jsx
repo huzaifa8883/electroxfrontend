@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useState } from "react";
 import {
   Plus, Pencil, Trash2, X, Package, Search, LayoutGrid, Table as TableIcon,
@@ -67,6 +68,8 @@ const emptyForm = {
   sku: "", name: "", category: CATEGORIES[0], stock: 0, min_stock: 5,
   cost_price: 0, selling_price: 0, box_id: "", image_url: "", images: [],
   location: "", description: "", characteristics: "",
+  short_description: "", meta_description: "", tags: "", focus_keyword: "",
+  weight: 0, sync_to_website: true,
 };
 
 const MAX_IMAGES = 7;
@@ -177,6 +180,12 @@ export default function Products() {
       location: p.location || "",
       description: p.description || "",
       characteristics: p.characteristics || "",
+      short_description: p.short_description || "",
+      meta_description: p.meta_description || "",
+      tags: p.tags || "",
+      focus_keyword: p.focus_keyword || "",
+      weight: p.weight || 0,
+      sync_to_website: p.sync_to_website !== false,
     });
     setShowForm(true);
   };
@@ -240,18 +249,27 @@ export default function Products() {
         min_stock: Number(form.min_stock) || 0,
         cost_price: Number(form.cost_price) || 0,
         selling_price: Number(form.selling_price) || 0,
+        weight: Number(form.weight) || 0,
         images: form.images,
         image_url: form.images[0] || form.image_url || null,
+        sync_to_website: form.sync_to_website !== false,
       };
+      let res;
       if (editing) {
-        await api.updateProduct(editing.id, payload);
+        res = await api.updateProduct(editing.id, payload);
       } else {
-        await api.createProduct(payload);
+        res = await api.createProduct(payload);
+      }
+      const data = res?.data || res;
+      if (data?.website_error) {
+        alert("Product saved in inventory, but website sync failed:\n" + data.website_error);
+      } else if (form.sync_to_website !== false) {
+        // soft success
       }
       setShowForm(false);
       load();
     } catch (err) {
-      alert(err.response?.data?.error || "Couldn't save this product.");
+      alert(err.response?.data?.error || err.response?.data?.detail || "Couldn't save this product.");
     }
   };
 
@@ -720,16 +738,56 @@ export default function Products() {
 
             <div>
               <label className="text-xs text-slate-400 flex items-center gap-1.5 mb-1">
-                <FileText size={11} /> Description
+                <FileText size={11} /> Short Description (website)
+              </label>
+              <textarea
+                value={form.short_description}
+                onChange={(e) => setForm({ ...form, short_description: e.target.value })}
+                rows={2}
+                placeholder="Short text shown under product title on website..."
+                className="input-field resize-y min-h-[60px]"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 flex items-center gap-1.5 mb-1">
+                <FileText size={11} /> Description (full)
               </label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={3}
-                placeholder="Write a clear product description..."
-                className="input-field resize-y min-h-[80px]"
+                rows={4}
+                placeholder="Full product description (website long description)..."
+                className="input-field resize-y min-h-[100px]"
               />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Weight (kg)" type="number" value={form.weight} onChange={(v) => setForm({ ...form, weight: v })} placeholder="0.5" />
+              <Field label="Tags (comma separated)" value={form.tags} onChange={(v) => setForm({ ...form, tags: v })} placeholder="poe, injector, 24v" />
+              <Field label="Focus Keyword (SEO)" value={form.focus_keyword} onChange={(v) => setForm({ ...form, focus_keyword: v })} placeholder="24v poe injector" />
+              <div className="sm:col-span-2">
+                <label className="text-xs text-slate-400">Meta Description (SEO)</label>
+                <textarea
+                  value={form.meta_description}
+                  onChange={(e) => setForm({ ...form, meta_description: e.target.value })}
+                  rows={2}
+                  maxLength={320}
+                  placeholder="SEO meta description for Google (max ~160 chars recommended)..."
+                  className="input-field mt-1 resize-y min-h-[60px]"
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={form.sync_to_website !== false}
+                onChange={(e) => setForm({ ...form, sync_to_website: e.target.checked })}
+                className="rounded border-white/20"
+              />
+              Sync to website (WooCommerce) on save
+            </label>
 
             <div>
               <label className="text-xs text-slate-400 flex items-center gap-1.5 mb-1">
