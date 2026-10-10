@@ -5,11 +5,63 @@ import {
   MapPin, Box, Tag, Layers, FileText, List, Eye,
 } from "lucide-react";
 import * as api from "../services/api";
-
 export const CATEGORIES = [
-  "Solar", "Batteries", "Battery Chargers", "Power Supplies",
-  "Mobile Accessories", "Home Appliances", "Cables", "CCTV", "Lighting",
+  // Existing
+  "Solar",
+  "Batteries",
+  "Power Supplies",
+  "Mobile Accessories",
+  "Home Appliances",
+  "CCTV",
+  "Lighting",
+
+  // Cables + subcategories
+  "Cables",
+  "Cables > AC Cables",
+  "Cables > DC Cables",
+  "Cables > Power Cables",
+  "Cables > Mobile Cables",
+  "Cables > Display Cables",
+  "Cables > Connectors",
+  "Cables > Others",
+
+  // Chargers (new main category) + subcategories
+  // "Battery Chargers" ab standalone nahi — Chargers ke under hai
+  "Chargers",
+  "Chargers > Battery Chargers",
+  "Chargers > Laptop Chargers",
+  "Chargers > Mobile Chargers",
+  "Chargers > Wireless Chargers",
+
+  // New main category
+  "Computer and Networking",
 ];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const emptyForm = {
   sku: "", name: "", category: CATEGORIES[0], stock: 0, min_stock: 5,
