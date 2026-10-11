@@ -114,6 +114,7 @@ export default function Products() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -238,6 +239,8 @@ export default function Products() {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (saving || uploading) return;
+    setSaving(true);
     try {
       const payload = {
         ...form,
@@ -267,12 +270,13 @@ export default function Products() {
       load();
     } catch (err) {
       const msg = err.response?.data?.error || err.response?.data?.detail || "Couldn't save this product.";
-      // SKU duplicate — clear message
       if (err.response?.status === 409 || /sku/i.test(msg)) {
         alert(msg || "This SKU already exists. Please use a different SKU.");
       } else {
         alert(msg);
       }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -814,8 +818,8 @@ export default function Products() {
               Sync to website (WooCommerce) on save
             </label>
 
-            <button disabled={uploading} className="btn-primary w-full">
-              {uploading ? "Uploading…" : editing ? "Save Changes" : "Create Product"}
+            <button disabled={uploading || saving} className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed">
+              {saving ? (editing ? "Saving…" : "Creating…") : uploading ? "Uploading…" : editing ? "Save Changes" : "Create Product"}
             </button>
           </form>
         </div>
