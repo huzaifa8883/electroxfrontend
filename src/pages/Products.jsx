@@ -259,15 +259,20 @@ export default function Products() {
         res = await api.createProduct(payload);
       }
       const data = res?.data || res;
+      // Inventory save always succeeds here; website sync errors only log to console
       if (data?.website_error) {
-        alert("Product saved in inventory, but website sync failed:\n" + data.website_error);
-      } else if (form.sync_to_website !== false) {
-        // soft success
+        console.warn("Website sync warning:", data.website_error);
       }
       setShowForm(false);
       load();
     } catch (err) {
-      alert(err.response?.data?.error || err.response?.data?.detail || "Couldn't save this product.");
+      const msg = err.response?.data?.error || err.response?.data?.detail || "Couldn't save this product.";
+      // SKU duplicate — clear message
+      if (err.response?.status === 409 || /sku/i.test(msg)) {
+        alert(msg || "This SKU already exists. Please use a different SKU.");
+      } else {
+        alert(msg);
+      }
     }
   };
 
@@ -787,13 +792,13 @@ export default function Products() {
               <Field label="Tags (comma separated)" value={form.tags} onChange={(v) => setForm({ ...form, tags: v })} placeholder="poe, injector, 24v" />
               <Field label="Focus Keyword (SEO)" value={form.focus_keyword} onChange={(v) => setForm({ ...form, focus_keyword: v })} placeholder="24v poe injector" />
               <div className="sm:col-span-2">
-                <label className="text-xs text-slate-400">Meta Description (SEO)</label>
+                <label className="text-xs text-slate-400">Short / Meta Description</label>
                 <textarea
                   value={form.meta_description}
                   onChange={(e) => setForm({ ...form, meta_description: e.target.value })}
                   rows={2}
                   maxLength={320}
-                  placeholder="SEO meta description for Google (max ~160 chars recommended)..."
+                  placeholder="Short description for website (also used as SEO meta)..."
                   className="input-field mt-1 resize-y min-h-[60px]"
                 />
               </div>
