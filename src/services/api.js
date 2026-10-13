@@ -64,9 +64,9 @@ export const createBox = (data) => api.post("/boxes", data);
 export const updateBox = (id, data) => api.put(`/boxes/${id}`, data);
 export const deleteBox = (id) => api.delete(`/boxes/${id}`);
 
-/* ---------------- POS ---------------- */
+/* ---------------- POS / Sales ---------------- */
 export const checkout = (payload) => api.post("/pos/checkout", payload);
-export const getSales = () => api.get("/pos/sales");
+export const getSales = (params) => api.get("/pos/sales", { params });
 export const getSale = (id) => api.get(`/pos/sales/${id}`);
 
 /* ---------------- Dashboard ---------------- */
@@ -85,3 +85,4 @@ export const deleteCustomer = (id) => api.delete(`/customers/${id}`);
 export const getStockLedger = (product_id) => api.get("/stock-ledger", { params: { product_id } });
 
 export default api;
+
