@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Package, Users, Receipt, ScrollText,
-  BarChart3, Boxes, Zap, ShieldCheck, LogOut, X,
+  BarChart3, Boxes, Zap, ShieldCheck, LogOut, X, List, FilePlus2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -9,7 +9,8 @@ const NAV_ITEMS = [
   { id: "products", label: "Products", icon: Package, module: "products" },
   { id: "boxes", label: "Boxes", icon: Boxes, module: "boxes" },
   { id: "customers", label: "Customers", icon: Users, module: "customers" },
-  { id: "sales", label: "Sales", icon: Receipt, module: "sales" },
+  { id: "sales", label: "Add Sale", icon: FilePlus2, module: "sales" },
+  { id: "sales-history", label: "Sales History", icon: List, module: "sales" },
   { id: "stock-ledger", label: "Stock Ledger", icon: ScrollText, module: "stock_ledger" },
   { id: "reports", label: "Reports", icon: BarChart3, module: "reports" },
   { id: "users", label: "Users & Roles", icon: ShieldCheck, module: "users" },
@@ -39,8 +40,12 @@ export default function Sidebar({ active, onNavigate, open, onClose }) {
             <Zap size={18} className="text-white" />
           </div>
           <div className="min-w-0">
-            <span className="block font-bold text-base text-white tracking-tight truncate leading-tight">Electrox Pro</span>
-            <span className="block text-[11px] text-slate-500 leading-tight truncate">Inventory Management</span>
+            <span className="block font-bold text-base text-white tracking-tight truncate leading-tight">
+              Suntech Pakistan
+            </span>
+            <span className="block text-[11px] text-slate-500 leading-tight truncate">
+              Inventory Management
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -56,14 +61,21 @@ export default function Sidebar({ active, onNavigate, open, onClose }) {
             return (
               <button
                 key={id}
-                onClick={() => { onNavigate(id); onClose?.(); }}
+                onClick={() => {
+                  onNavigate(id);
+                  onClose?.();
+                }}
                 className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-                  ${isActive
-                    ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-300 border border-cyan-500/30 shadow-inner"
-                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  ${
+                    isActive
+                      ? "bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-300 border border-cyan-500/30 shadow-inner"
+                      : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                   }`}
               >
-                <Icon size={18} className={`shrink-0 ${isActive ? "" : "group-hover:scale-110 transition-transform"}`} />
+                <Icon
+                  size={18}
+                  className={`shrink-0 ${isActive ? "" : "group-hover:scale-110 transition-transform"}`}
+                />
                 <span className="truncate">{label}</span>
               </button>
             );
@@ -77,12 +89,19 @@ export default function Sidebar({ active, onNavigate, open, onClose }) {
             </div>
             {user && (
               <div className="text-xs min-w-0">
-                <p className="text-white font-medium truncate">{user.full_name || user.username}</p>
-                <p className="text-slate-500 truncate">{user.is_system ? "Super Admin" : "Staff account"}</p>
+                <p className="text-white font-medium truncate">
+                  {user.full_name || user.username}
+                </p>
+                <p className="text-slate-500 truncate">
+                  {user.is_system ? "Super Admin" : "Staff account"}
+                </p>
               </div>
             )}
           </div>
-          <button onClick={logout} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 border border-white/10">
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 border border-white/10"
+          >
             <LogOut size={14} /> Log out
           </button>
         </div>
