@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { id: "products", label: "Products", icon: Package, module: "products" },
   { id: "boxes", label: "Boxes", icon: Boxes, module: "boxes" },
   { id: "customers", label: "Customers", icon: Users, module: "customers" },
-  { id: "sales", label: "Sales & Invoices", icon: Receipt, module: "sales" },
+  { id: "sales", label: "Sales", icon: Receipt, module: "sales" },
   { id: "stock-ledger", label: "Stock Ledger", icon: ScrollText, module: "stock_ledger" },
   { id: "reports", label: "Reports", icon: BarChart3, module: "reports" },
   { id: "users", label: "Users & Roles", icon: ShieldCheck, module: "users" },
