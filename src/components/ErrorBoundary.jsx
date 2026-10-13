@@ -4,7 +4,7 @@ import { AlertTriangle, RotateCcw } from "lucide-react";
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { error: null };
+    this.state = { error: null, retryKey: 0 };
   }
 
   static getDerivedStateFromError(error) {
@@ -12,8 +12,19 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("Electrox Pro crashed:", error, info);
+    console.error("Page error caught by ErrorBoundary:", error, info);
   }
+
+  // When parent changes key (e.g. page navigation), clear error automatically
+  componentDidUpdate(prevProps) {
+    if (prevProps.children !== this.props.children && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
+  handleRetry = () => {
+    this.setState((s) => ({ error: null, retryKey: s.retryKey + 1 }));
+  };
 
   render() {
     if (this.state.error) {
@@ -25,18 +36,16 @@ export default class ErrorBoundary extends Component {
             </div>
             <h3 className="text-white font-semibold mb-1">Something went wrong</h3>
             <p className="text-sm text-slate-400 mb-5">
-              This section hit an unexpected error. You can try again without losing the rest of the app.
+              This section hit an unexpected error. Click Try again — you will not lose the rest of the app.
             </p>
-            <button
-              onClick={() => this.setState({ error: null })}
-              className="btn-primary mx-auto"
-            >
+            <button onClick={this.handleRetry} className="btn-primary mx-auto">
               <RotateCcw size={14} /> Try again
             </button>
           </div>
         </div>
       );
     }
-    return this.props.children;
+    // retryKey forces children to remount cleanly after error
+    return <div key={this.state.retryKey}>{this.props.children}</div>;
   }
 }
