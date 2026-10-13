@@ -18,7 +18,7 @@ const TITLES = {
   products: ["Products", "Catalogue, pricing and stock levels"],
   boxes: ["Boxes", "Physical storage tracking"],
   customers: ["Customers", "Manage customer records"],
-  sales: ["Sales & Invoices", "Create invoices and review transaction history"],
+  sales: ["Sales", "Add sales (stock decreases automatically) · View history · Print invoices"],
   "stock-ledger": ["Stock Ledger", "Full audit trail of stock movement"],
   reports: ["Reports", "Business analytics"],
   users: ["Users & Roles", "Manage staff accounts and access levels"],
