@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import BoxesView from "./pages/BoxesView";
 import Sales from "./pages/Sales";
+import SalesHistory from "./pages/SalesHistory";
 import StockLedger from "./pages/StockLedger";
 import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
@@ -18,7 +19,8 @@ const TITLES = {
   products: ["Products", "Catalogue, pricing and stock levels"],
   boxes: ["Boxes", "Physical storage tracking"],
   customers: ["Customers", "Manage customer records"],
-  sales: ["Sales", "Add sales (stock decreases automatically) · View history · Print invoices"],
+  sales: ["Add Sale", "Create sale — stock decreases automatically · invoice generates"],
+  "sales-history": ["Sales History", "Daily / weekly / monthly · search customer, product, category"],
   "stock-ledger": ["Stock Ledger", "Full audit trail of stock movement"],
   reports: ["Reports", "Business analytics"],
   users: ["Users & Roles", "Manage staff accounts and access levels"],
@@ -30,6 +32,7 @@ const PAGES = {
   boxes: { component: BoxesView, module: "boxes" },
   customers: { component: Customers, module: "customers" },
   sales: { component: Sales, module: "sales" },
+  "sales-history": { component: SalesHistory, module: "sales" },
   "stock-ledger": { component: StockLedger, module: "stock_ledger" },
   reports: { component: Reports, module: "reports" },
   users: { component: UserManagement, module: "users" },
@@ -37,17 +40,30 @@ const PAGES = {
 
 function AuthenticatedApp() {
   const { can } = useAuth();
-  const firstAllowed = Object.entries(PAGES).find(([, v]) => can(v.module, "view"))?.[0] || "dashboard";
+  const firstAllowed =
+    Object.entries(PAGES).find(([, v]) => can(v.module, "view"))?.[0] || "dashboard";
+
+  // Only set initial page once — don't reset when can() stabilizes
   const [active, setActive] = useState(firstAllowed);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const initialized = useRef(false);
 
-  useEffect(() => { setActive(firstAllowed); }, [firstAllowed]);
+  useEffect(() => {
+    if (!initialized.current && firstAllowed) {
+      setActive(firstAllowed);
+      initialized.current = true;
+    }
+  }, [firstAllowed]);
 
   const entry = PAGES[active];
   const allowed = entry && can(entry.module, "view");
-  const PageComponent = allowed ? entry.component : () => (
-    <div className="p-8 text-slate-400 text-sm">You don't have access to this section.</div>
-  );
+  const PageComponent = allowed
+    ? entry.component
+    : () => (
+        <div className="p-8 text-slate-400 text-sm">
+          You don't have access to this section.
+        </div>
+      );
   const [title, subtitle] = TITLES[active] || ["", ""];
 
   return (
@@ -72,7 +88,13 @@ function AuthenticatedApp() {
 
 function Gate() {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400 text-sm">Loading…</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400 text-sm">
+        Loading…
+      </div>
+    );
+  }
   if (!user) return <Login />;
   return <AuthenticatedApp />;
 }
@@ -86,3 +108,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
