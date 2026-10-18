@@ -119,6 +119,7 @@ export default function Products() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [stockFilter, setStockFilter] = useState("");
+  const [boxFilter, setBoxFilter] = useState("");
   const [view, setView] = useState("grid");
 
   const [loading, setLoading] = useState(true);
@@ -153,9 +154,32 @@ export default function Products() {
       const matchesCategory = !categoryFilter || p.category === categoryFilter;
       const status = stockStatus(p).label;
       const matchesStock = !stockFilter || status === stockFilter;
-      return matchesSearch && matchesCategory && matchesStock;
+      const matchesBox = !boxFilter
+        || (boxFilter === "__none__" && !p.box_id)
+        || (String(p.box_id) === String(boxFilter));
+      return matchesSearch && matchesCategory && matchesStock && matchesBox;
     });
-  }, [products, search, categoryFilter, stockFilter]);
+  }, [products, search, categoryFilter, stockFilter, boxFilter]);
+
+
+  const quickChangeBox = async (productId, boxId) => {
+    try {
+      await api.assignBox(productId, boxId || null);
+      await load();
+      // refresh detail if open
+      setDetail((prev) => {
+        if (!prev || prev.id !== productId) return prev;
+        const box = boxes.find((b) => String(b.id) === String(boxId));
+        return {
+          ...prev,
+          box_id: boxId || null,
+          box_number: box ? box.box_number : null,
+        };
+      });
+    } catch (err) {
+      alert(err.response?.data?.error || "Couldn't change box.");
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -332,6 +356,17 @@ export default function Products() {
           <option value="In Stock">In Stock</option>
           <option value="Low Stock">Low Stock</option>
           <option value="Out of Stock">Out of Stock</option>
+        </select>
+        <select
+          value={boxFilter}
+          onChange={(e) => setBoxFilter(e.target.value)}
+          className="input-field w-auto"
+        >
+          <option value="">All boxes</option>
+          <option value="__none__">Unassigned</option>
+          {boxes.map((b) => (
+            <option key={b.id} value={b.id}>{b.box_number}</option>
+          ))}
         </select>
         <div className="flex gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
           <button onClick={() => setView("grid")} className={`p-2 rounded-md ${view === "grid" ? "bg-cyan-500/20 text-cyan-300" : "text-slate-400 hover:text-white"}`}>
@@ -606,7 +641,17 @@ export default function Products() {
                       </div>
                       <div className="rounded-xl bg-white/5 border border-white/10 p-3">
                         <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Box</p>
-                        <p className="text-sm font-semibold text-cyan-300 truncate">{detail.box_number || "Unassigned"}</p>
+                        <select
+                          value={detail.box_id || ""}
+                          onChange={(e) => quickChangeBox(detail.id, e.target.value || null)}
+                          className="w-full bg-transparent text-sm font-semibold text-cyan-300 border-0 outline-none cursor-pointer truncate p-0"
+                          title="Change box"
+                        >
+                          <option value="" className="bg-slate-900 text-white">Unassigned</option>
+                          {boxes.map((b) => (
+                            <option key={b.id} value={b.id} className="bg-slate-900 text-white">{b.box_number}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
