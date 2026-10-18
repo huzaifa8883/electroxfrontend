@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PackageSearch, Plus, Pencil, Trash2, X, Boxes, AlertTriangle, RotateCcw } from "lucide-react";
+import { PackageSearch, Plus, Pencil, Trash2, X, Boxes, AlertTriangle, RotateCcw, Move } from "lucide-react";
 import * as api from "../services/api";
 
 export default function BoxesView() {
@@ -10,6 +10,8 @@ export default function BoxesView() {
   const [form, setForm] = useState({ box_number: "", rack_location: "", description: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [changingProduct, setChangingProduct] = useState(null);
+  const [newBoxId, setNewBoxId] = useState("");
 
   const loadBoxes = () => {
     setLoading(true);
@@ -28,6 +30,27 @@ export default function BoxesView() {
       setSelectedBox(data);
     } catch (err) {
       alert(err.response?.data?.error || "Couldn't load this box.");
+    }
+  };
+
+  const openChangeBox = (product) => {
+    setChangingProduct(product);
+    setNewBoxId(selectedBox?.id ? String(selectedBox.id) : "");
+  };
+
+  const submitChangeBox = async (e) => {
+    e.preventDefault();
+    if (!changingProduct) return;
+    try {
+      await api.assignBox(changingProduct.id, newBoxId || null);
+      if (selectedBox) {
+        const { data } = await api.getBox(selectedBox.id);
+        setSelectedBox(data);
+      }
+      loadBoxes();
+      setChangingProduct(null);
+    } catch (err) {
+      alert(err.response?.data?.error || "Couldn't change box for this product.");
     }
   };
 
@@ -73,16 +96,20 @@ export default function BoxesView() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Boxes size={20} className="text-cyan-400" /> Box Management
+            <Boxes size={22} className="text-cyan-400" /> Boxes
           </h2>
-          <p className="text-sm text-slate-400">Track exactly which physical box or shelf holds each product.</p>
+          <p className="text-sm text-slate-400">Physical storage locations for your inventory.</p>
         </div>
         <button onClick={openCreate} className="btn-primary">
           <Plus size={16} /> Add Box
         </button>
       </div>
 
-      {loading && <p className="text-slate-400 text-sm">Loading boxes…</p>}
+      {loading && (
+        <div className="flex items-center justify-center gap-2 text-slate-400 text-sm py-16">
+          <RotateCcw size={18} className="animate-spin" /> Loading boxes…
+        </div>
+      )}
 
       {!loading && error && (
         <div className="glass-card border-rose-500/20 bg-rose-500/5 p-8 text-center">
@@ -180,20 +207,63 @@ export default function BoxesView() {
                 const dotColor = out ? "bg-rose-400" : low ? "bg-amber-400" : "bg-emerald-400";
                 const textColor = out ? "text-rose-300" : low ? "text-amber-400" : "text-emerald-400";
                 return (
-                  <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white/5 border border-white/10 hover:border-cyan-500/40 cursor-pointer transition-all"
+                    onClick={() => openChangeBox(p)}
+                    title="Click to change box"
+                  >
                     <div className="min-w-0">
                       <p className="text-sm text-white truncate">{p.name}</p>
-                      <p className="text-xs text-slate-500">SKU: {p.sku}</p>
+                      <p className="text-xs text-slate-500">SKU: {p.sku} · Box: {selectedBox.box_number || "—"}</p>
                     </div>
-                    <span className={`flex items-center gap-1.5 shrink-0 text-xs font-semibold px-2.5 py-1 rounded-md bg-black/20 ${textColor}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-                      {stock} pcs
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-black/20 ${textColor}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                        {stock} pcs
+                      </span>
+                      <Move size={14} className="text-slate-500" />
+                    </div>
                   </div>
                 );
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Change product box modal */}
+      {changingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setChangingProduct(null)}>
+          <form
+            onSubmit={submitChangeBox}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white">Change Box</h3>
+              <button type="button" onClick={() => setChangingProduct(null)} className="text-slate-400 hover:text-white"><X size={18} /></button>
+            </div>
+            <p className="text-sm text-slate-300">
+              <span className="font-semibold text-white">{changingProduct.name}</span>
+              <span className="text-slate-500"> · SKU: {changingProduct.sku}</span>
+            </p>
+            <p className="text-xs text-slate-500">Current box: <span className="text-cyan-300">{selectedBox?.box_number || "Unassigned"}</span></p>
+            <div>
+              <label className="text-xs text-slate-400">Move to box</label>
+              <select
+                value={newBoxId}
+                onChange={(e) => setNewBoxId(e.target.value)}
+                className="input-field mt-1"
+              >
+                <option value="">— Unassigned —</option>
+                {boxes.map((b) => (
+                  <option key={b.id} value={b.id}>{b.box_number}{b.rack_location ? ` (${b.rack_location})` : ""}</option>
+                ))}
+              </select>
+            </div>
+            <button className="btn-primary w-full">Save Box Assignment</button>
+          </form>
         </div>
       )}
 
