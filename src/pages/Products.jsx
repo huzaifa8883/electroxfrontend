@@ -23,6 +23,10 @@ export const CATEGORIES = [
   "Cables > Power Cables",
   "Cables > Mobile Cables",
   "Cables > Display Cables",
+  "Cables > Network Cables",
+  "Cables > Medical Cables",
+
+  "Cables > USB Cables",
   "Cables > Connectors",
   "Cables > Others",
 
