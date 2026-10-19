@@ -5,14 +5,14 @@ import * as api from "../services/api";
 export default function BoxesView() {
   const [boxes, setBoxes] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-  const [selectedBox, setSelectedBox] = useState(null); // full detail of selected box
+  const [selectedBox, setSelectedBox] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingBox, setEditingBox] = useState(null);
   const [form, setForm] = useState({ box_number: "", rack_location: "", description: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [productSearch, setProductSearch] = useState("");
-  const [assigningId, setAssigningId] = useState(null); // product currently being assigned
+  const [assigningId, setAssigningId] = useState(null);
 
   const loadBoxes = () => {
     setLoading(true);
@@ -46,13 +46,11 @@ export default function BoxesView() {
 
   const assignProductToBox = async (product) => {
     if (!selectedBox) return;
-    // already in this box? skip
     if (String(product.box_id) === String(selectedBox.id)) return;
 
     setAssigningId(product.id);
     try {
       await api.assignBox(product.id, selectedBox.id);
-      // refresh box detail + boxes list + products list
       const { data } = await api.getBox(selectedBox.id);
       setSelectedBox(data);
       loadBoxes();
@@ -103,7 +101,6 @@ export default function BoxesView() {
     }
   };
 
-  // All products filtered by search, with current box info
   const filteredProducts = useMemo(() => {
     const q = productSearch.trim().toLowerCase();
     return allProducts.filter((p) => {
@@ -117,10 +114,9 @@ export default function BoxesView() {
     });
   }, [allProducts, productSearch]);
 
-  // Products already inside the selected box (for the top section)
   const productsInBox = useMemo(() => {
     if (!selectedBox) return [];
-    return (selectedBox.products || []);
+    return selectedBox.products || [];
   }, [selectedBox]);
 
   return (
@@ -130,7 +126,7 @@ export default function BoxesView() {
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Boxes size={22} className="text-cyan-400" /> Boxes
           </h2>
-          <p className="text-sm text-slate-400">Click a box → see all products → click product to add it to that box.</p>
+          <p className="text-sm text-slate-400">Click a box → see all products → search by name → click product to add it to that box.</p>
         </div>
         <button onClick={openCreate} className="btn-primary">
           <Plus size={16} /> Add Box
@@ -199,7 +195,6 @@ export default function BoxesView() {
         </div>
       )}
 
-      {/* Selected box panel — shows products currently in box + ALL products to assign */}
       {selectedBox && (
         <div className="mt-8 rounded-2xl border border-cyan-500/30 bg-slate-900/80 p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5">
@@ -219,12 +214,11 @@ export default function BoxesView() {
             </button>
           </div>
 
-          {/* Products currently inside this box */}
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-cyan-300 mb-2">Products in this box</h4>
             {productsInBox.length === 0 ? (
               <p className="text-sm text-slate-500 py-3 px-4 rounded-lg border border-dashed border-white/10">
-                No products in this box yet. Click any product below to add it here.
+                No products in this box yet. Search / click any product below to add it here.
               </p>
             ) : (
               <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -241,17 +235,18 @@ export default function BoxesView() {
             )}
           </div>
 
-          {/* ALL products — click to assign to this box */}
           <div>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h4 className="text-sm font-semibold text-white">All products — click to add to <span className="text-cyan-300">{selectedBox.box_number}</span></h4>
-              <div className="relative w-48 sm:w-64">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <h4 className="text-sm font-semibold text-white">
+                All products — click to add to <span className="text-cyan-300">{selectedBox.box_number}</span>
+              </h4>
+              <div className="relative w-full sm:w-64">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
-                  placeholder="Search products…"
-                  className="input-field pl-8 text-sm py-1.5"
+                  placeholder="Search by product name, SKU…"
+                  className="input-field pl-8 text-sm py-1.5 w-full"
                 />
               </div>
             </div>
@@ -294,7 +289,7 @@ export default function BoxesView() {
                       ) : isAssigning ? (
                         <span className="text-xs text-slate-400">Adding…</span>
                       ) : (
-                        <span className="text-xs text-slate-500 group-hover:text-cyan-300">+ Add</span>
+                        <span className="text-xs text-slate-500">+ Add</span>
                       )}
                     </div>
                   </div>
@@ -305,7 +300,6 @@ export default function BoxesView() {
         </div>
       )}
 
-      {/* Add/Edit box form modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowForm(false)}>
           <form
@@ -317,7 +311,6 @@ export default function BoxesView() {
               <h3 className="text-lg font-bold text-white">{editingBox ? "Edit Box" : "Add Box"}</h3>
               <button type="button" onClick={() => setShowForm(false)} className="text-slate-400 hover:text-white"><X size={18} /></button>
             </div>
-
             <div>
               <label className="text-xs text-slate-400">Box Number *</label>
               <input
