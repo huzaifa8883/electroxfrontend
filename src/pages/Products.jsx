@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Plus, Pencil, Trash2, X, Package, Search, LayoutGrid, Table as TableIcon,
   ImagePlus, Loader2, AlertTriangle, RotateCcw, ChevronLeft, ChevronRight,
-  MapPin, Box, Tag, Layers, FileText, List, Eye,
+  MapPin, Box, Tag, Layers, FileText, List, Eye, Camera, Image as ImageIcon,
 } from "lucide-react";
 import * as api from "../services/api";
 export const CATEGORIES = [
@@ -778,20 +778,51 @@ export default function Products() {
                   </div>
                 ))}
                 {form.images.length < MAX_IMAGES && (
-                  <label className="w-20 h-20 rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-cyan-500/40 hover:bg-white/5 transition-colors">
-                    {uploading ? (
-                      <Loader2 size={18} className="text-cyan-400 animate-spin" />
-                    ) : (
-                      <>
-                        <ImagePlus size={18} className="text-slate-500" />
-                        <span className="text-[10px] text-slate-500 mt-1">Add</span>
-                      </>
-                    )}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleImagesChange} disabled={uploading} />
-                  </label>
+                  <>
+                    {/* Gallery / files */}
+                    <label className="w-20 h-20 rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-cyan-500/40 hover:bg-white/5 transition-colors">
+                      {uploading ? (
+                        <Loader2 size={18} className="text-cyan-400 animate-spin" />
+                      ) : (
+                        <>
+                          <ImageIcon size={18} className="text-slate-500" />
+                          <span className="text-[10px] text-slate-500 mt-1">Gallery</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleImagesChange}
+                        disabled={uploading}
+                      />
+                    </label>
+                    {/* Camera (mobile rear camera preferred) */}
+                    <label className="w-20 h-20 rounded-xl border border-dashed border-cyan-500/30 flex flex-col items-center justify-center cursor-pointer hover:border-cyan-500/60 hover:bg-cyan-500/5 transition-colors">
+                      {uploading ? (
+                        <Loader2 size={18} className="text-cyan-400 animate-spin" />
+                      ) : (
+                        <>
+                          <Camera size={18} className="text-cyan-400" />
+                          <span className="text-[10px] text-cyan-400/80 mt-1">Camera</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleImagesChange}
+                        disabled={uploading}
+                      />
+                    </label>
+                  </>
                 )}
               </div>
-              <p className="text-[10px] text-slate-500 mt-1.5">First image is the cover. Click ★ on hover to change cover.</p>
+              <p className="text-[10px] text-slate-500 mt-1.5">
+                Gallery se select karo ya Camera se photo lo. First image cover hai — hover pe ★ se change.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -890,3 +921,4 @@ function Field({ label, value, onChange, type = "text", required = false, placeh
     </div>
   );
 }
+
